@@ -1,0 +1,1 @@
+ipython main.py -- -p 16 12 8 -k 5 7 -u -i -r 1996 -e 1 4 6 8 12 16 24 32 -s storage/neural_net_glasses.npz -m 64 -t 5 -w 1200

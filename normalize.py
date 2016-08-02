@@ -1,0 +1,158 @@
+#!/usr/bin/env python
+
+import numpy as np
+import cv2
+
+import sys, math, warnings
+from PIL import Image
+
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+eye_cascade = cv2.CascadeClassifier('haarcascade_eye_tree_eyeglasses.xml')
+
+class Detect:
+	NORMAL, HIGH_SENS, SINGLE_EYE, NO_FACE_FAIL, NO_EYES_FAIL = range(5)
+
+FINAL_WIDTH = 90
+FINAL_HEIGHT = 120
+LR_OFFSET = 0.32
+U_OFFSET = 0.4
+
+def Distance(p1,p2):
+	dx = p2[0] - p1[0]
+	dy = p2[1] - p1[1]
+	return math.sqrt(dx*dx+dy*dy)
+
+def ScaleRotateTranslate(image, angle, center = None, new_center = None, scale = None, resample=Image.BICUBIC):
+	if (scale is None) and (center is None):
+		return image.rotate(angle=angle, resample=resample)
+	nx,ny = x,y = center
+	sx=sy=1.0
+	if new_center:
+		(nx,ny) = new_center
+	if scale:
+		(sx,sy) = (scale, scale)
+	cosine = math.cos(angle)
+	sine = math.sin(angle)
+	a = cosine/sx
+	b = sine/sx
+	c = x-nx*a-ny*b
+	d = -sine/sy
+	e = cosine/sy
+	f = y-nx*d-ny*e
+	return image.transform(image.size, Image.AFFINE, (a,b,c,d,e,f), resample=resample)
+
+def CropFace(image, eye_left, eye_right, 
+		offset_pct=(LR_OFFSET,U_OFFSET), 
+		dest_sz = (FINAL_WIDTH,FINAL_HEIGHT)):
+	# calculate offsets in original image
+	offset_h = math.floor(float(offset_pct[0])*dest_sz[0])
+	offset_v = math.floor(float(offset_pct[1])*dest_sz[1])
+	# get the direction
+	eye_direction = (eye_right[0] - eye_left[0], eye_right[1] - eye_left[1])
+	# calc rotation angle in radians
+	rotation = -math.atan2(float(eye_direction[1]),float(eye_direction[0]))
+	# distance between them
+	dist = Distance(eye_left, eye_right)
+	# calculate the reference eye-width
+	reference = dest_sz[0] - 2.0*offset_h
+	# scale factor
+	scale = float(dist)/float(reference)
+	# rotate original around the left eye
+	image = ScaleRotateTranslate(image, center=eye_left, angle=rotation)
+	# crop the rotated image
+	crop_xy = (eye_left[0] - scale*offset_h, eye_left[1] - scale*offset_v)
+	crop_size = (dest_sz[0]*scale, dest_sz[1]*scale)
+	image = image.crop((int(crop_xy[0]), int(crop_xy[1]), int(crop_xy[0]+crop_size[0]), int(crop_xy[1]+crop_size[1])))
+	# resize it
+	image = image.resize(dest_sz, Image.ANTIALIAS)
+	return image
+ 
+def NormalizeFace(pil_image):
+	(width, height) = pil_image.size
+	opencv_image = np.array(pil_image)
+	faces = face_cascade.detectMultiScale(
+			opencv_image, scaleFactor=1.1, minNeighbors=3)
+	primary_coords = None
+	max_area = 0
+	for (x, y, w, h) in faces:
+		if (w * h) > max_area:
+			max_area = w * h
+			primary_coords = (x, y, w, h)
+	if (not primary_coords):
+		raise RuntimeError(Detect.NO_FACE_FAIL)
+	(xf, yf, wf, hf) = primary_coords
+	primary_roi = opencv_image[yf:yf+hf, xf:xf+wf]
+
+	primary_coords = (None, None)
+	max_area = (0, 0)
+	eyes = eye_cascade.detectMultiScale(
+			primary_roi, scaleFactor=1.1, minNeighbors=3)
+	if len(eyes) < 2:
+		warnings.warn(str(Detect.HIGH_SENS), RuntimeWarning)
+		eyes = eye_cascade.detectMultiScale(
+			primary_roi, scaleFactor=1.1, minNeighbors=1)
+	for (x, y, w, h) in eyes:
+		if (w * h) > max_area[0]:
+			max_area = (w * h, max_area[0])
+			primary_coords = ((x, y, w, h), primary_coords[0])
+		elif (w * h) > max_area[1]:
+			max_area = (max_area[0], w * h)
+			primary_coords = (primary_coords[0], (x, y, w, h))
+	if (not primary_coords[0] and not primary_coords[1]):
+		raise RuntimeError(Detect.NO_EYES_FAIL)
+	elif (not primary_coords[1]):
+		warnings.warn(str(Detect.SINGLE_EYE), RuntimeWarning)
+		((_, y1, _, h1), _) = primary_coords
+		yEyes = yf + y1 + h1 // 2
+		scale = FINAL_WIDTH / hf
+		pil_image = pil_image.resize(
+				(int(round(width * scale)), int(round(height * scale))), 
+				Image.ANTIALIAS)
+		yEyes = int(round(yEyes * scale))
+		xMidFace = int(round((xf + wf / 2) * scale))
+		pil_image = pil_image.crop((
+				xMidFace - FINAL_WIDTH // 2, 
+				yEyes - int(round(FINAL_HEIGHT * U_OFFSET)), 
+				xMidFace + FINAL_WIDTH // 2, 
+				yEyes + int(round(FINAL_HEIGHT * (1 - U_OFFSET)))))
+		return pil_image
+	((x1, y1, w1, h1), (x2, y2, w2, h2)) = primary_coords
+	((xL, yL), (xR, yR)) = (
+			(xf + x1 + w1 // 2, yf + y1 + h1 // 2), 
+			(xf + x2 + w2 // 2, yf + y2 + h2 // 2))
+	if (xL > xR):
+		((xL, yL), (xR, yR)) = ((xR, yR), (xL, yL))
+	return CropFace(pil_image, (xL, yL), (xR, yR))
+
+
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2012, Philipp Wagner
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of the author nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.

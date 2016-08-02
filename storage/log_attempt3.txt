@@ -1,0 +1,81 @@
+*** Pretraining network, phase 1... ***
+
+Initial loss = 0.307380742844
+Epoch 0 ..........
+	Verification loss = -0.072714064102
+	Stagnation = 0
+	Neural network stored
+Epoch 1 ..........
+	Verification loss = -0.0845650430168
+	Stagnation = 0
+	Neural network stored
+Epoch 2 ..........
+	Verification loss = -0.0917673213948
+	Stagnation = 0
+	Neural network stored
+Epoch 3 ..........
+	Verification loss = -0.0966444733643
+	Stagnation = 0
+	Neural network stored
+Epoch 4 ..........
+	Verification loss = -0.100198446887
+	Stagnation = 0
+	Neural network stored
+Epoch 5 ..........
+	Verification loss = -0.102916749158
+	Stagnation = 0
+	Neural network stored
+Epoch 6 ..........
+	Verification loss = -0.105147283188
+	Stagnation = 0
+	Neural network stored
+Epoch 7 ..........
+	Verification loss = -0.10698430692
+	Stagnation = 0
+	Neural network stored
+
+*** Pretraining network, phase 2... ***
+
+Initial loss = -0.10698430692
+Epoch 0 ..........
+	Verification loss = -0.108548597991
+	Stagnation = 0
+	Neural network stored
+Epoch 1 ..........
+	Verification loss = -0.10988459801
+	Stagnation = 0
+	Neural network stored
+Epoch 2 ..........
+	Verification loss = -0.111023153004
+	Stagnation = 0
+	Neural network stored
+Epoch 3 ..........
+	Verification loss = -0.112056914717
+	Stagnation = 0
+	Neural network stored
+Epoch 4 ..........
+	Verification loss = -0.112974710041
+	Stagnation = 0
+	Neural network stored
+Epoch 5 ..........
+	Verification loss = -0.113781911015
+	Stagnation = 0
+	Neural network stored
+Epoch 6 ..........
+	Verification loss = -0.114543217901
+	Stagnation = 0
+	Neural network stored
+Epoch 7 ..........
+	Verification loss = -0.115232931606
+	Stagnation = 0
+	Neural network stored
+
+*** Training network... ***
+
+Initial loss = -0.107054108213
+Epoch 0 ..........
+	Verification loss = -0.106726561487
+	Stagnation = 1
+
+*** Stopping criteria met; end of training ***
+

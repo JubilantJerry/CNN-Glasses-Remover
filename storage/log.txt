@@ -1,0 +1,72 @@
+ipython main.py -- -p 16 12 8 -k 5 7 -u -i -e 0.5 2 3 4 6 8 -m 18 -t 5 -w 1000
+ 
+*** Training network... ***
+
+Initial loss = 0.278772217708
+Epoch 0 ..........
+	Verification loss = -0.0978636154364
+	Stagnation = 0
+	Neural network stored
+Epoch 1 ..........
+	Verification loss = -0.108991059901
+	Stagnation = 0
+	Neural network stored
+Epoch 2 ..........
+	Verification loss = -0.113973943192
+	Stagnation = 0
+	Neural network stored
+Epoch 3 ..........
+	Verification loss = -0.117446554428
+	Stagnation = 0
+	Neural network stored
+Epoch 4 ..........
+	Verification loss = -0.119524002292
+	Stagnation = 0
+	Neural network stored
+Epoch 5 ..........
+	Verification loss = -0.120642469247
+	Stagnation = 0
+	Neural network stored
+Epoch 6 ..........
+	Verification loss = -0.121123955447
+	Stagnation = 0
+	Neural network stored
+Epoch 7 ..........
+	Verification loss = -0.121613480415
+	Stagnation = 0
+	Neural network stored
+Epoch 8 ..........
+	Verification loss = -0.122086436542
+	Stagnation = 0
+	Neural network stored
+Epoch 9 ..........
+	Verification loss = -0.122088701086
+	Stagnation = 0
+	Neural network stored
+Epoch 10 ..........
+	Verification loss = -0.122295799467
+	Stagnation = 0
+	Neural network stored
+Epoch 11 ..........
+	Verification loss = -0.122269661004
+	Stagnation = 1
+Epoch 12 ..........
+	Verification loss = -0.122364829937
+	Stagnation = 0
+	Neural network stored
+Epoch 13 ..........
+	Verification loss = -0.122499586353
+	Stagnation = 0
+	Neural network stored
+Epoch 14 ..........
+	Verification loss = -0.122320473555
+	Stagnation = 1
+Epoch 15 ..........
+	Verification loss = -0.122158637475
+	Stagnation = 2
+Epoch 16 ..........
+	Verification loss = -0.122091107263
+	Stagnation = 3
+
+*** Stopping criteria met; end of training ***
+

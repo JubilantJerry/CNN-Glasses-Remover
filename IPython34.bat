@@ -1,0 +1,1 @@
+cmd "/c activate py34 && ipython --pylab"
